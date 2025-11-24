@@ -20,10 +20,6 @@
 const express = require("express");
 const path = require('path');
 const app = express();
-const database = require('./database');
-
-database.connectDB();
-
 
 app.set('view engine', 'ejs'); // tell Express to use EJS
 //Set the views to be in the views folder
@@ -38,7 +34,7 @@ app.use(express.static('middlewares/public'));
 
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-    console.log(`Server running on localhost:${port}`);
+    console.log(`Server running on port ${port}`);
 });
 
 // Include route files
