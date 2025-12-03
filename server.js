@@ -31,7 +31,6 @@ app.use(express.static('middlewares/public'));
 //     res.send('<h1>Hello World</h1>'); // res.send('Hello World');
 // });
 
-
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
     console.log(`Server running on localhost:${port}`);
