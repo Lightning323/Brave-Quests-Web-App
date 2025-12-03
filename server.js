@@ -15,6 +15,8 @@
  * npm install express
  * npm install ejs
  */
+const session = require("express-session");
+const bcrypt = require("bcrypt");
 
 
 const express = require("express");
@@ -25,6 +27,14 @@ app.set('view engine', 'ejs'); // tell Express to use EJS
 //Set the views to be in the views folder
 app.set('views', path.join(__dirname, 'middlewares/views')); // folder for EJS files
 app.use(express.static('middlewares/public'));
+app.use(express.urlencoded({ extended: true })); // for form POSTs
+
+app.use(session({
+    secret: "supersecretkey", 
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 1000 * 60 * 60 } // 1 hour
+}));
 
 //This is our root route (just / )
 // app.get('/', (req, res) => {
@@ -51,6 +61,9 @@ app.use('/quest-board', requestHelp);
 
 const character = require('./routes/character');
 app.use('/character', character);
+
+const authRoutes = require('./routes/auth');
+app.use('/', authRoutes);
 
 
 //Error Handling (MUST BE LAST)
