@@ -52,5 +52,30 @@ app.use((err, req, res, next) => {
 // Start server
 const port = process.env.PORT || 3000;
 app.listen(port, () => {
-  console.log(`Server running on http://localhost:${port}`);
+    console.log(`Server running on localhost:${port}`);
+});
+
+// Include route files
+const homeRoute = require('./routes/index');
+app.use('/', homeRoute);
+
+const questBoard = require('./routes/quest-board');
+app.use('/quest-board', questBoard);
+
+const questChat = require('./routes/quest-chat');
+app.use('/quest-chat', questChat);
+
+const requestHelp = require('./routes/quest-board');
+app.use('/quest-board', requestHelp);
+
+const character = require('./routes/character');
+app.use('/character', character);
+
+
+//Error Handling (MUST BE LAST)
+app.use((req, res, next) => {
+    res.status(404).render('404'); // looks for views/404.ejs
+});
+app.use((req, res, next) => {
+    res.status(500).render('500');
 });
