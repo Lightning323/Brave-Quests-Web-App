@@ -52,6 +52,9 @@ app.use('/quest-board', requestHelp);
 const character = require('./routes/character');
 app.use('/character', character);
 
+const contactHelp = require('./routes/request-help');
+app.use('/request-help', contactHelp);
+
 
 //Error Handling (MUST BE LAST)
 app.use((req, res, next) => {
