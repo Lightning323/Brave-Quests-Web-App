@@ -12,18 +12,6 @@ router.get('/', (req, res) => {
   });
 });
 
-router.get('/chat', async (req, res) => {
-  var acceptedQuests = await questUtils.getAcceptedQuests(req.session.user);
-
-  routeUtils.renderPage(req, res, 'quest-chat', {
-    acceptedQuests: acceptedQuests,
-    title: "Help Chat",
-    otherPageTitle: "Request Help",
-    otherPageLink: "/request-help"
-  });
-});
-
-
 
 router.post('/', (req, res) => {
   try {

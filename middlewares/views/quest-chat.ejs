@@ -7,137 +7,51 @@
     <%- include('partials/head-tags') %>
     <link rel="stylesheet" href="/chat.css" />
   </head>
+
   <body class="d-flex flex-column" style="height: 100%">
-    <%- include('partials/header') %> <%- include('partials/not-signed-in') %>
+    <%- include('partials/header') %>
+    <%- include('partials/not-signed-in') %>
 
-    <!-- TODO: SHould we show the tabs here? It means less space for the chat-->
-    <!-- <ul class="nav nav-tabs" id="tabsBar">
-      <li class="nav-item">
-        <a class="nav-link" href="<%= otherPageLink %>">
-          <%= otherPageTitle %>
-        </a>
-      </li>
+    <!-- WebSocket path injected from server -->
+    <script>
+      const CHAT_WS = "<%= chatWsAddress %>";
+      const QUEST_ID = "<%= startingQuestID || '' %>";
+    </script>
 
-      <li class="nav-item">
-        <a class="nav-link active"><%= title %></a>
-      </li>
-    </ul> -->
-
-    <main id="main" style="padding: 0em 2em 1em 2em;">
+    <main id="main" style="padding: 0em 2em 1em 2em">
       <div class="row chat-container" id="chat-container">
-        <!-- Sidebar for threads -->
         <div class="col-md-3 threads bg-light p-3">
           <a class="nav-link active" href="<%= otherPageLink %>">
             <i class="fa-solid fa-arrow-left"></i> <%= otherPageTitle %>
           </a>
-          <br>
+          <br />
           <h5>Quests</h5>
           <ul class="list-group">
-            <li
-              class="list-group-item d-flex justify-content-between align-items-center active"
-            >
-              General
-              <span class="badge bg-secondary rounded-pill">3</span>
-            </li>
-            <li
-              class="list-group-item d-flex justify-content-between align-items-center"
-            >
-              Project X
-              <span class="badge bg-secondary rounded-pill">1</span>
-            </li>
-            <li
-              class="list-group-item d-flex justify-content-between align-items-center"
-            >
-              Support
-              <span class="badge bg-secondary rounded-pill">5</span>
-            </li>
-            <li
-              class="list-group-item d-flex justify-content-between align-items-center disabled"
-            >
-              Closed
-            </li>
+            <% acceptedQuests.forEach((quest) => { %>
+              <li
+                class="list-group-item d-flex justify-content-between align-items-center <%= quest.completed === 'true' ? 'disabled' : '' %>"
+                data-quest-id="<%= quest.questDbId %>"
+              >
+                <span><%= quest.title %></span>
+              </li>
+            <% }); %>
           </ul>
         </div>
 
         <!-- Chat area -->
         <div class="col-md-9 chat-messages d-flex flex-column">
-          <!-- Chat header -->
-          <div
-            class="d-flex justify-content-between align-items-center border-bottom p-2"
-          >
+
+          <div class="d-flex justify-content-between align-items-center border-bottom p-2">
             <h5 class="mb-0">Homework Help</h5>
-            <div>
-              <button class="btn btn-sm btn-success">Resolve Thread</button>
-            </div>
+            <div><button class="btn btn-sm btn-success" id="resolveBtn">Resolve Thread</button></div>
           </div>
 
-          <!-- Messages -->
-          <div class="messages flex-grow-1 overflow-auto">
-            <!-- Mock messages -->
-            <div class="chat-message">
-              <div class="author">Alice <span class="time">10:15 AM</span></div>
-              <div class="text">
-                Hey team! Here's the screenshot from yesterday's meeting.
-              </div>
-              <div class="attachments mt-1">
-                <img
-                  src="https://via.placeholder.com/120"
-                  class="img-thumbnail"
-                  alt="Attachment"
-                />
-              </div>
-            </div>
-            <div class="chat-message">
-              <div class="author">Bob <span class="time">10:17 AM</span></div>
-              <div class="text">Thanks Alice! That helps a lot.</div>
-            </div>
-            <div class="chat-message blue-message">
-              <div class="author">
-                Charlie <span class="time">10:20 AM</span>
-              </div>
-              <div class="text">
-                I also uploaded the document you asked for.
-              </div>
-              <div class="attachments mt-1">
-                <a href="#" class="btn btn-sm btn-outline-secondary"
-                  >project-doc.pdf</a
-                >
-              </div>
-            </div>
-            <div class="chat-message blue-message">
-              <div class="author">Alice <span class="time">10:22 AM</span></div>
-              <div class="text">
-                Perfect, let's review it in the next meeting.
-              </div>
-            </div>
-            <!-- Add more mock messages to test scrolling -->
-            <% for(let i=0; i<10; i++){ %>
-            <div class="chat-message">
-              <div class="author">
-                User<%= i+1 %> <span class="time">10:<%= 25+i %> AM</span>
-              </div>
-              <div class="text">
-                This is a sample message to test scrolling and layout.
-              </div>
-            </div>
-            <% } %>
-          </div>
+          <div class="messages flex-grow-1 overflow-auto" id="messages"></div>
 
-          <!-- Input -->
           <div class="chat-input mt-auto p-2">
             <form class="d-flex gap-2" id="chatForm">
-              <textarea
-                id="message"
-                name="message"
-                rows="5"
-                cols="50"
-                placeholder="Type your message here..."
-              ></textarea>
-              <input
-                type="file"
-                class="form-control form-control-sm"
-                id="fileInput"
-              />
+              <textarea id="message" rows="3" placeholder="Type your message..."></textarea>
+              <input type="file" class="form-control form-control-sm" id="fileInput" />
               <button class="btn btn-primary">Send</button>
             </form>
           </div>
@@ -147,40 +61,132 @@
 
     <%- include('partials/footer') %>
   </body>
+
+  <!-- -----------------------------
+        WEBSOCKET LOGIC
+  ------------------------------ -->
   <script>
+    let ws;
+
+    function connectWS() {
+      ws = new WebSocket(`ws://${location.host}${CHAT_WS}`);
+
+      ws.onopen = () => {
+        console.log("WS connected!");
+        if (QUEST_ID) {
+          ws.send(JSON.stringify({
+            action: "GET_MESSAGES",
+            questDbId: QUEST_ID
+          }));
+        }
+      };
+
+      ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+
+        if (data.type === "MESSAGES_LIST") {
+          loadMessages(data.messages);
+        }
+
+        if (data.type === "NEW_MESSAGE") {
+          addMessage(data);
+        }
+
+        if (data.type === "QUEST_RESOLVED") {
+          alert("Quest resolved!");
+        }
+      };
+
+      ws.onclose = () => {
+        console.log("WS disconnected… reconnecting");
+        setTimeout(connectWS, 1000);
+      };
+    }
+    connectWS();
+
+    // ---------------------------
+    // Rendering messages
+    // ---------------------------
+    const msgContainer = document.getElementById("messages");
+
+    function addMessage(msg) {
+      const el = document.createElement("div");
+      el.className = "chat-message";
+
+      el.innerHTML = `
+        <div class="author">${msg.username} <span class="time">${new Date(msg.timestamp).toLocaleTimeString()}</span></div>
+        <div class="text">${msg.message}</div>
+        ${msg.attachments && msg.attachments.length ? `
+          <div class="attachments mt-1">
+            ${msg.attachments.map(a => `<a href="${a}" target="_blank">${a}</a>`).join("<br/>")}
+          </div>
+        ` : ""}
+      `;
+
+      msgContainer.appendChild(el);
+      msgContainer.scrollTop = msgContainer.scrollHeight;
+    }
+
+    function loadMessages(list) {
+      msgContainer.innerHTML = "";
+      list.forEach(addMessage);
+    }
+
+    // ---------------------------
+    // Sending messages
+    // ---------------------------
+    document.getElementById("chatForm").addEventListener("submit", (e) => {
+      e.preventDefault();
+
+      const message = document.getElementById("message").value;
+      const fileInput = document.getElementById("fileInput");
+
+      let attachments = [];
+      if (fileInput.files.length > 0) {
+        attachments.push("/uploads/" + fileInput.files[0].name);
+      }
+
+      ws.send(JSON.stringify({
+        action: "SEND_MESSAGE",
+        questDbId: QUEST_ID,
+        message,
+        attachments
+      }));
+
+      document.getElementById("message").value = "";
+      fileInput.value = "";
+    });
+
+    // ---------------------------
+    // Resolve quest
+    // ---------------------------
+    document.getElementById("resolveBtn").addEventListener("click", () => {
+      ws.send(JSON.stringify({
+        action: "RESOLVE_QUEST",
+        questDbId: QUEST_ID
+      }));
+    });
+
+    // Auto-adjust height
     function adjustChatHeight() {
       const header = document.getElementById("header-padding");
-      const tabs = document.getElementById("tabsBar");
       const footer = document.getElementById("site-footer");
       const main = document.getElementById("main");
       const chat = document.getElementById("chat-container");
 
       const headerH = parseFloat(header?.style.height) || 0;
-      const tabsH = tabs?.offsetHeight || 0;
       const footerH = footer?.offsetHeight || 0;
 
       const style = getComputedStyle(main);
+      const paddingTop = parseFloat(style.paddingTop) || 0;
+      const paddingBottom = parseFloat(style.paddingBottom) || 0;
 
-      const paddingTop = parseFloat(style.paddingTop);
-      const paddingBottom = parseFloat(style.paddingBottom);
-      const mainPadding = paddingTop + paddingBottom || 0;
-
-      console.log(headerH, tabsH, footerH, mainPadding);
-
-      const totalUsed = headerH + tabsH + footerH + mainPadding;
-      console.log(totalUsed);
-
-      // Set the chat container height dynamically
+      const totalUsed = headerH + footerH + paddingTop + paddingBottom;
       chat.style.height = `calc(100vh - ${totalUsed}px)`;
-      chat.style.opacity = "1";
-      
     }
 
-    // Run on load + resize
     window.addEventListener("load", adjustChatHeight);
     window.addEventListener("resize", adjustChatHeight);
-
-    // Optional: call again after fonts/images load
     setTimeout(adjustChatHeight, 200);
   </script>
 </html>

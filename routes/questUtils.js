@@ -92,11 +92,59 @@ async function closeQuest(idString) {
   }
 }
 
+async function addMessage(questDbId, username, messageText, attachments = []) {
+  try {
+    let questEntry = await database.messageCollection.findOne({ questDbId });
+
+    const newMessage = {
+      username,
+      timestamp: new Date(), // store as Date
+      message: messageText,
+      attachments
+    };
+
+    if (!questEntry) {
+      // No entry exists → create a new document
+      const newDoc = {
+        questDbId,
+        messages: [newMessage]
+      };
+      const result = await collection.insertOne(newDoc);
+      console.log('Created new quest entry with message:', result.insertedId);
+      return true;
+    } else {
+      // Entry exists → append message
+      await database.messageCollection.updateOne(
+        { questDbId },
+        { $push: { messages: newMessage } }
+      );
+      console.log('Appended message to existing quest entry');
+      return true;
+    }
+  } catch (err) {
+    console.error('Error adding message:', err);
+    return false;
+  }
+}
+
+
+// Delete the entire quest (all messages)
+async function deleteQuestThread(questDbId) {
+  try {
+    await database.messageCollection.deleteOne({ questDbId });
+    console.log(`Quest ${questDbId} deleted`);
+  } catch (err) {
+    console.error('Error deleting quest:', err);
+  }
+}
+
 module.exports = {
   getUnacceptedQuests,
   getAcceptedQuests,
   newQuest,
   acceptQuest,
   rejectQuest,
-  closeQuest
+  closeQuest,
+  addMessage,
+  deleteQuestThread
 };

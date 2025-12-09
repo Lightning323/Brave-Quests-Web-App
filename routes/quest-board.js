@@ -44,17 +44,6 @@ wssQuests.on("connection", (ws, request) => {
 router.wssQuests = wssQuests;
 router.wssQuestsAddress = wssQuestsAddress;
 
-//Routes
-router.get('/chat', async (req, res) => {
-  // var acceptedQuests = await questUtils.getAcceptedQuests(req.session.user);
-
-  routeUtils.renderPage(req, res, 'quest-chat', {
-    // acceptedQuests: acceptedQuests,
-    title: "Quest Chat",
-    otherPageTitle: "Quest Board",
-    otherPageLink: "/quest-board"
-  });
-});
 
 router.get('/', async (req, res) => {
   routeUtils.renderPage(req, res, 'quest-board', {

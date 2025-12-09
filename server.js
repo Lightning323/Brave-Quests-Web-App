@@ -7,6 +7,8 @@ const fs = require("fs");
 const dotenv = require("dotenv");
 const { WebSocketServer } = require("ws");
 
+
+
 // Load environment variables from .env file
 dotenv.config();
 
@@ -31,25 +33,12 @@ app.use(
   sessionParser
 );
 
-// Routes
-const homeRoute = require("./routes/index");
-app.use("/", homeRoute);
-
-const questBoard = require("./routes/quest-board");
-app.use("/quest-board", questBoard);
-
-const requestHelp = require("./routes/request-help");
-app.use("/request-help", requestHelp);
-
-const character = require("./routes/character");
-app.use("/character", character);
-
-const authRoutes = require("./routes/auth");
-app.use("/", authRoutes);
-
 
 //Database
 const database = require("./database");
+async function connectDB() {
+  await database.connect();
+}
 
 //Add endpoint for adding items to the database
 app.post('/api/items', async (req, res) => {
@@ -78,11 +67,80 @@ app.post('/api/items', async (req, res) => {
   }
 });
 
-
-
-
+//-------------------------------------
+// Start server
+const port = process.env.PORT || 3000;
+const server = app.listen(port, () => console.log(`Server running http://localhost:${port}`));
 
 //-------------------------------------
+//Routes
+
+//Home
+const homeRoute = require("./routes/index");
+app.use("/", homeRoute);
+
+//Request Help
+const requestHelp = require("./routes/request-help");
+app.use("/request-help", requestHelp);
+
+//Character
+const character = require("./routes/character");
+app.use("/character", character);
+
+//login / register
+const authRoutes = require("./routes/auth");
+app.use("/", authRoutes);
+
+//Quest Board
+const questBoard = require("./routes/quest-board");
+app.use("/quest-board", questBoard);
+
+const ChatModule  = require("./routes/ChatModule");
+
+//Quest Chat
+const questBoardChat = new ChatModule({
+  address: "/ws/quest-board/chat",
+  title: "Quest Chat",
+  otherPageTitle: "Quest Board",
+  otherPageLink: "/quest-board"
+});
+app.use("/quest-board/chat", questBoardChat.router);
+
+//Request Help Chat
+const questHelpChat = new ChatModule({
+  address: "/ws/request-help/chat",
+  title: "Quest Help Chat",
+  otherPageTitle: "Request Help",
+  otherPageLink: "/request-help"
+});
+app.use("/request-help/chat", questHelpChat.router);
+
+//-------------------------------------
+//Websockets
+
+const wssMap = {
+  [questBoardChat.address]: questBoardChat.wss,
+  [questHelpChat.address]: questHelpChat.wss,
+  [questBoard.wssQuestsAddress]: questBoard.wssQuests
+};
+
+//Setup the websockets
+server.on("upgrade", (req, socket, head) => {
+  const wss = wssMap[req.url];
+
+  if (!wss) {
+    socket.destroy();
+    return;
+  }
+
+  sessionParser(req, {}, () => {
+    wss.handleUpgrade(req, socket, head, (ws) => {
+      wss.emit("connection", ws, req);
+    });
+  });
+});
+
+//----------------------------------------------------
 // Error endpoints (MUST BE LAST)
 app.use((req, res) => {
   res.status(404).render("404");
@@ -93,34 +151,5 @@ app.use((err, req, res, next) => {
   res.status(500).render("500");
 });
 
-//-------------------------------------
-// Start server and database connection
-const port = process.env.PORT || 3000;
-const server = app.listen(port, () => console.log(`Server running http://localhost:${port}`));
-
-//WEBSOCKETS ---------------------------------------
-function bindWSS(server, path, wss, sessionParser) {
-  server.on("upgrade", (request, socket, head) => {
-    if (request.url === path) {
-      // Parse session first
-      sessionParser(request, {}, () => {
-        wss.handleUpgrade(request, socket, head, (ws) => {
-          wss.emit("connection", ws, request); // now request.session is available
-        });
-      });
-    } else {
-      socket.destroy();
-    }
-  });
-}
-
-
-bindWSS(server, questBoard.wssQuestsAddress, questBoard.wssQuests, sessionParser);
 //----------------------------------------------------
-
-// Connect the database
-async function connectDB() {
-  await database.connect();
-}
-
 connectDB();
