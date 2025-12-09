@@ -1,8 +1,9 @@
 .chat-container {
-  height: 400px;
   border: 1px solid #ddd;
   border-radius: 8px;
   overflow: hidden;
+  margin : 0 auto;
+  opacity: 0.3;
 }
 .threads {
   height: 100%;

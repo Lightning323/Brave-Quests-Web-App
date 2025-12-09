@@ -10,7 +10,8 @@
   <body class="d-flex flex-column" style="height: 100%">
     <%- include('partials/header') %> <%- include('partials/not-signed-in') %>
 
-    <ul class="nav nav-tabs">
+    <!-- TODO: SHould we show the tabs here? It means less space for the chat-->
+    <!-- <ul class="nav nav-tabs" id="tabsBar">
       <li class="nav-item">
         <a class="nav-link" href="<%= otherPageLink %>">
           <%= otherPageTitle %>
@@ -20,12 +21,16 @@
       <li class="nav-item">
         <a class="nav-link active"><%= title %></a>
       </li>
-    </ul>
+    </ul> -->
 
-    <div class="container flex-grow-1 py-3">
-      <div class="row chat-container">
+    <main id="main" style="padding: 0em 2em 1em 2em;">
+      <div class="row chat-container" id="chat-container">
         <!-- Sidebar for threads -->
         <div class="col-md-3 threads bg-light p-3">
+          <a class="nav-link active" href="<%= otherPageLink %>">
+            <i class="fa-solid fa-arrow-left"></i> <%= otherPageTitle %>
+          </a>
+          <br>
           <h5>Quests</h5>
           <ul class="list-group">
             <li
@@ -138,8 +143,44 @@
           </div>
         </div>
       </div>
-    </div>
+    </main>
 
     <%- include('partials/footer') %>
   </body>
+  <script>
+    function adjustChatHeight() {
+      const header = document.getElementById("header-padding");
+      const tabs = document.getElementById("tabsBar");
+      const footer = document.getElementById("site-footer");
+      const main = document.getElementById("main");
+      const chat = document.getElementById("chat-container");
+
+      const headerH = parseFloat(header?.style.height) || 0;
+      const tabsH = tabs?.offsetHeight || 0;
+      const footerH = footer?.offsetHeight || 0;
+
+      const style = getComputedStyle(main);
+
+      const paddingTop = parseFloat(style.paddingTop);
+      const paddingBottom = parseFloat(style.paddingBottom);
+      const mainPadding = paddingTop + paddingBottom || 0;
+
+      console.log(headerH, tabsH, footerH, mainPadding);
+
+      const totalUsed = headerH + tabsH + footerH + mainPadding;
+      console.log(totalUsed);
+
+      // Set the chat container height dynamically
+      chat.style.height = `calc(100vh - ${totalUsed}px)`;
+      chat.style.opacity = "1";
+      
+    }
+
+    // Run on load + resize
+    window.addEventListener("load", adjustChatHeight);
+    window.addEventListener("resize", adjustChatHeight);
+
+    // Optional: call again after fonts/images load
+    setTimeout(adjustChatHeight, 200);
+  </script>
 </html>
