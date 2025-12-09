@@ -9,13 +9,22 @@
   </head>
 
   <body class="d-flex flex-column" style="height: 100%">
-    <%- include('partials/header') %>
-    <%- include('partials/not-signed-in') %>
+    <%- include('partials/header') %> <%- include('partials/not-signed-in') %>
 
     <!-- WebSocket path injected from server -->
     <script>
       const CHAT_WS = "<%= chatWsAddress %>";
-      const QUEST_ID = "<%= startingQuestID || '' %>";
+      <% if (typeof user !== "undefined" && user) { %>
+        const USERNAME = "<%= user %>";
+      <% } else { %>
+        const USERNAME = null;
+      <% } %>
+
+      var selectedQuest = <%- JSON.stringify(startingQuest || null) %>;
+
+      console.log("Starting quest:", JSON.stringify(selectedQuest), "id:", selectedQuest?._id);
+      console.log("Chat WS address:", CHAT_WS);
+      console.log("Username:", USERNAME);
     </script>
 
     <main id="main" style="padding: 0em 2em 1em 2em">
@@ -28,31 +37,49 @@
           <h5>Quests</h5>
           <ul class="list-group">
             <% acceptedQuests.forEach((quest) => { %>
-              <li
-                class="list-group-item d-flex justify-content-between align-items-center <%= quest.completed === 'true' ? 'disabled' : '' %>"
-                data-quest-id="<%= quest.questDbId %>"
-              >
-                <span><%= quest.title %></span>
-              </li>
+
+            <li
+              onclick="selectQuest('<%= quest._id %>')"
+              class="list-group-item d-flex justify-content-between align-items-center 
+              <%= quest.completed === 'true' ? 'disabled' : '' %> 
+              <%= startingQuest != null && quest._id === startingQuest._id ? 'active' : '' %>"
+              data-quest-id="<%= quest._id %>"
+            >
+              <span><%= quest.title %></span>
+            </li>
+
             <% }); %>
           </ul>
         </div>
 
         <!-- Chat area -->
         <div class="col-md-9 chat-messages d-flex flex-column">
-
-          <div class="d-flex justify-content-between align-items-center border-bottom p-2">
-            <h5 class="mb-0">Homework Help</h5>
-            <div><button class="btn btn-sm btn-success" id="resolveBtn">Resolve Thread</button></div>
+          <div
+            class="d-flex justify-content-between align-items-center border-bottom p-2"
+          >
+            <h5 class="mb-0" id="chat-title">Homework Help</h5>
+            <div>
+              <button class="btn btn-sm btn-success" id="resolveBtn">
+                Resolve Thread
+              </button>
+            </div>
           </div>
 
           <div class="messages flex-grow-1 overflow-auto" id="messages"></div>
 
           <div class="chat-input mt-auto p-2">
             <form class="d-flex gap-2" id="chatForm">
-              <textarea id="message" rows="3" placeholder="Type your message..."></textarea>
-              <input type="file" class="form-control form-control-sm" id="fileInput" />
-              <button class="btn btn-primary">Send</button>
+              <textarea
+                id="message"
+                rows="3"
+                placeholder="Type your message..."
+              ></textarea>
+              <input
+                type="file"
+                class="form-control form-control-sm"
+                id="fileInput"
+              />
+              <button class="btn btn-primary" type="submit">Send</button>
             </form>
           </div>
         </div>
@@ -73,11 +100,13 @@
 
       ws.onopen = () => {
         console.log("WS connected!");
-        if (QUEST_ID) {
-          ws.send(JSON.stringify({
-            action: "GET_MESSAGES",
-            questDbId: QUEST_ID
-          }));
+        if (selectedQuest !== null) {
+          ws.send(
+            JSON.stringify({
+              action: "GET_MESSAGES",
+              questDbId: selectedQuest._id,
+            })
+          );
         }
       };
 
@@ -86,13 +115,14 @@
 
         if (data.type === "MESSAGES_LIST") {
           loadMessages(data.messages);
-        }
-
-        if (data.type === "NEW_MESSAGE") {
+        } else if (data.type === "SELECT_QUEST") {
+          selectedQuest = data.quest;
+          console.log("New Selected quest:", JSON.stringify(selectedQuest));
+          applySelectedQuest(selectedQuest);
+          loadMessages(data.messages);
+        } else if (data.type === "NEW_MESSAGE") {
           addMessage(data);
-        }
-
-        if (data.type === "QUEST_RESOLVED") {
+        } else if (data.type === "QUEST_RESOLVED") {
           alert("Quest resolved!");
         }
       };
@@ -103,6 +133,7 @@
       };
     }
     connectWS();
+    applySelectedQuest(selectedQuest);
 
     // ---------------------------
     // Rendering messages
@@ -112,19 +143,49 @@
     function addMessage(msg) {
       const el = document.createElement("div");
       el.className = "chat-message";
+      if (msg.username === USERNAME) {
+        el.classList.add("blue-message");
+      }
 
       el.innerHTML = `
-        <div class="author">${msg.username} <span class="time">${new Date(msg.timestamp).toLocaleTimeString()}</span></div>
+        <div class="author">${msg.username} <span class="time">${new Date(
+        msg.timestamp
+      ).toLocaleTimeString()}</span></div>
         <div class="text">${msg.message}</div>
-        ${msg.attachments && msg.attachments.length ? `
+        ${
+          msg.attachments && msg.attachments.length
+            ? `
           <div class="attachments mt-1">
-            ${msg.attachments.map(a => `<a href="${a}" target="_blank">${a}</a>`).join("<br/>")}
+            ${msg.attachments
+              .map((a) => `<a href="${a}" target="_blank">${a}</a>`)
+              .join("<br/>")}
           </div>
-        ` : ""}
+        `
+            : ""
+        }
       `;
 
       msgContainer.appendChild(el);
       msgContainer.scrollTop = msgContainer.scrollHeight;
+    }
+
+    function applySelectedQuest(quest) {
+      if (!quest) return;
+
+      // 1️⃣ Update the chat header title
+      const titleEl = document.querySelector("#chat-title");
+      if (titleEl) {
+        titleEl.textContent = quest.title;
+      }
+
+      // 2️⃣ Update the active highlight in the left quest list
+      document.querySelectorAll("li.list-group-item").forEach((li) => {
+        li.classList.remove("active");
+
+        if (li.dataset.questId === quest._id) {
+          li.classList.add("active");
+        }
+      });
     }
 
     function loadMessages(list) {
@@ -136,35 +197,49 @@
     // Sending messages
     // ---------------------------
     document.getElementById("chatForm").addEventListener("submit", (e) => {
+      console.log("Sending message...");
       e.preventDefault();
 
       const message = document.getElementById("message").value;
       const fileInput = document.getElementById("fileInput");
+
+      console.log("Message:", message);
+      console.log("Attachments:", fileInput.files);
 
       let attachments = [];
       if (fileInput.files.length > 0) {
         attachments.push("/uploads/" + fileInput.files[0].name);
       }
 
-      ws.send(JSON.stringify({
-        action: "SEND_MESSAGE",
-        questDbId: QUEST_ID,
-        message,
-        attachments
-      }));
+      ws.send(
+        JSON.stringify({
+          action: "SEND_MESSAGE",
+          questDbId: selectedQuest._id,
+          message,
+          attachments,
+        })
+      );
 
       document.getElementById("message").value = "";
       fileInput.value = "";
     });
 
-    // ---------------------------
-    // Resolve quest
-    // ---------------------------
+    function selectQuest(questId) {
+      ws.send(
+        JSON.stringify({
+          action: "SELECT_QUEST",
+          questDbId: questId,
+        })
+      );
+    }
+
     document.getElementById("resolveBtn").addEventListener("click", () => {
-      ws.send(JSON.stringify({
-        action: "RESOLVE_QUEST",
-        questDbId: QUEST_ID
-      }));
+      ws.send(
+        JSON.stringify({
+          action: "RESOLVE_QUEST",
+          questDbId: selectedQuest._id,
+        })
+      );
     });
 
     // Auto-adjust height
@@ -183,6 +258,7 @@
 
       const totalUsed = headerH + footerH + paddingTop + paddingBottom;
       chat.style.height = `calc(100vh - ${totalUsed}px)`;
+      chat.style.opacity = "1";
     }
 
     window.addEventListener("load", adjustChatHeight);

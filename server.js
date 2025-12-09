@@ -101,6 +101,7 @@ const ChatModule  = require("./routes/ChatModule");
 const questBoardChat = new ChatModule({
   address: "/ws/quest-board/chat",
   title: "Quest Chat",
+  grabAcceptedQuests: true,
   otherPageTitle: "Quest Board",
   otherPageLink: "/quest-board"
 });
@@ -110,6 +111,7 @@ app.use("/quest-board/chat", questBoardChat.router);
 const questHelpChat = new ChatModule({
   address: "/ws/request-help/chat",
   title: "Quest Help Chat",
+  grabAcceptedQuests: false,
   otherPageTitle: "Request Help",
   otherPageLink: "/request-help"
 });

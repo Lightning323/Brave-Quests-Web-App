@@ -16,6 +16,15 @@ async function getUnacceptedQuests(username) {
   }
 }
 
+async function getQuest(idString){
+  try {
+    return await database.questsCollection.findOne({ _id: new ObjectId(idString) });
+  } catch (err) {
+    console.log("ERROR GETTING QUEST:", err);
+    return null;
+  }
+}
+
 // Add a new quest
 async function newQuest(username, title, description, color, timeMins) {
   try {
@@ -42,6 +51,19 @@ async function getAcceptedQuests(username) {
   try {
     return await database.questsCollection.find({
       acceptedUsers: username,
+      completed: false
+    }).toArray();
+  } catch (err) {
+    console.log("ERROR GETTING ACCEPTED QUESTS:", err);
+    return [];
+  }
+}
+
+//Get quests created by user
+async function getMyQuests(username) {
+  try {
+    return await database.questsCollection.find({
+      username: username,
       completed: false
     }).toArray();
   } catch (err) {
@@ -109,7 +131,7 @@ async function addMessage(questDbId, username, messageText, attachments = []) {
         questDbId,
         messages: [newMessage]
       };
-      const result = await collection.insertOne(newDoc);
+      const result = await database.messageCollection.insertOne(newDoc);
       console.log('Created new quest entry with message:', result.insertedId);
       return true;
     } else {
@@ -138,6 +160,31 @@ async function deleteQuestThread(questDbId) {
   }
 }
 
+async function getMessages(questDbId) {
+  try {
+    const results = await database.messageCollection.find({ questDbId }).toArray();
+
+    if (results.length === 0) {
+      return [];
+    }
+
+    const entry = results[0]; // grab the first object
+
+    if (entry?.messages !== undefined) {
+      console.log("Fetched messages:", entry.messages);
+      return entry.messages;
+    }
+    console.log("Fetched invalid messages:", entry);
+    return [];
+
+  } catch (err) {
+    console.error("Error fetching messages:", err);
+    throw err;
+  }
+}
+
+
+
 module.exports = {
   getUnacceptedQuests,
   getAcceptedQuests,
@@ -145,6 +192,9 @@ module.exports = {
   acceptQuest,
   rejectQuest,
   closeQuest,
+  getQuest,
   addMessage,
+  getMessages,
+  getMyQuests,
   deleteQuestThread
 };
