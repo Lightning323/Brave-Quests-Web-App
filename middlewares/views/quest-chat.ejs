@@ -3,12 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Quest Board Chat</title>
+    <title><%= title %></title>
     <%- include('partials/head-tags') %>
     <link rel="stylesheet" href="/chat.css" />
   </head>
   <body class="d-flex flex-column" style="height: 100%">
     <%- include('partials/header') %> <%- include('partials/not-signed-in') %>
+
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a class="nav-link" href="<%= otherPageLink %>">
+          <%= otherPageTitle %>
+        </a>
+      </li>
+
+      <li class="nav-item">
+        <a class="nav-link active"><%= title %></a>
+      </li>
+    </ul>
 
     <div class="container flex-grow-1 py-3">
       <div class="row chat-container">

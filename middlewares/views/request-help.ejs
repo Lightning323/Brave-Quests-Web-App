@@ -3,11 +3,23 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Quest Board</title>
+    <title><%= otherPageTitle %></title>
     <%- include('partials/head-tags') %>
   </head>
   <body>
     <%- include('partials/header') %> <%- include('partials/not-signed-in') %>
+
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a class="nav-link active" ><%= title %></a>
+      </li>
+        <li class="nav-item">
+        <a class="nav-link" href="<%= otherPageLink %>">
+          <%= otherPageTitle %>
+        </a>
+      </li>
+    </ul>
+
     <main class="py-5">
       <div class="container">
         <div class="row justify-content-center">

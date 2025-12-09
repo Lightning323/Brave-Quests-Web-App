@@ -5,14 +5,21 @@ const database = require("../database");
 const questUtils = require("./questUtils");
 
 router.get('/', (req, res) => {
-  routeUtils.renderPage(req, res, 'request-help');
+  routeUtils.renderPage(req, res, 'request-help', {
+    title: "Request Help",
+    otherPageTitle: "Help Chat",
+    otherPageLink: "/request-help/chat",
+  });
 });
 
 router.get('/chat', async (req, res) => {
   var acceptedQuests = await questUtils.getAcceptedQuests(req.session.user);
-  
+
   routeUtils.renderPage(req, res, 'quest-chat', {
-    acceptedQuests: acceptedQuests
+    acceptedQuests: acceptedQuests,
+    title: "Help Chat",
+    otherPageTitle: "Request Help",
+    otherPageLink: "/request-help"
   });
 });
 

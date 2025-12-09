@@ -1,10 +1,11 @@
 <div style="position: fixed;width:100%;top:0;z-index: 10000;">
-<header class="site-header">
+<header class="site-header" id="header">
   <div class="left-nav">
     <a href="/"><span id="logo"><i class="fa-solid fa-note-sticky"></i>Bravequests</span></a>
-    <a href="/quest-board"><button>Quest Board</button></a>
-    <a href="/character"><button>Character</button></a>
-    <a href="/request-help"><button>Request Help</button></a>
+
+    <a href="/quest-board" id="link-quest-board"><button>My Quests</button></a>
+    <a href="/character" id="link-character"><button>Character</button></a>
+    <a href="/request-help/chat" id="link-request-help"><button>Requested Help</button></a>
   </div>
 
   <div class="right-nav">
@@ -23,4 +24,21 @@
   </div>
 </header>
 </div>
-<div style="height: 50px;"></div>
+
+
+<div id="header-padding"></div>
+<script>
+  document.getElementById("header-padding").style.height = document.getElementById("header").offsetHeight + 10 + "px";
+
+  const path = window.location.pathname;
+
+if (path.startsWith('/request-help')) {
+    document.getElementById('link-request-help').classList.add('active');
+}
+if (path.startsWith('/quest-board')) {
+    document.getElementById('link-quest-board').classList.add('active');
+}
+if (path.startsWith('/character')) {
+    document.getElementById('link-character').classList.add('active');
+}
+</script>

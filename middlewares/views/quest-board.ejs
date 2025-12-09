@@ -3,16 +3,24 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Quest Board</title>
+    <title><%= title %></title>
     <%- include('partials/head-tags') %>
     <link rel="stylesheet" href="/quest-board.css" />
   </head>
   <body class="bg-light">
     <%- include('partials/header') %> <%- include('partials/not-signed-in') %>
+    <ul class="nav nav-tabs">
+      <li class="nav-item">
+        <a class="nav-link active" ><%= title %></a>
+      </li>
+        <li class="nav-item">
+        <a class="nav-link" href="<%= otherPageLink %>">
+          <%= otherPageTitle %>
+        </a>
+      </li>
+    </ul>
+
     <main>
-      <h1>Accepted Quests</h1>
-      <a href="/chat">View accepted quests</a>
-      <h1>New Quests</h1>
       <div id="questGrid" class="row g-3">
         <% quests.forEach(function(quest) { %>
         <div
