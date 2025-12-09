@@ -70,12 +70,6 @@ app.post('/api/items', async (req, res) => {
     });
   }
 });
-
-//-------------------------------------
-//Users endpoint
-users = require("./users");
-app.post("/register", async (req, res) => users.register(req, res));
-
 //-------------------------------------
 // Error endpoints (MUST BE LAST)
 app.use((req, res) => {

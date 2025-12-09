@@ -1,84 +1,107 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+}
 
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-    }
+header #logo {
+  color: rgb(0, 204, 255);
+  font-weight: 700;
+  margin-right: 40px;
+}
 
-    nav {
-      background-color: #333;
-      padding: 1em;
-    }
+header button{
+  background-color: rgba(0,0,0,0);
+  border-radius: 0;
+  border: none;
+  font-size: .9em;
+  padding:10px;
+  color: white;
+  border-bottom: 2px solid rgba(0,0,0,0);
+}
 
-    nav a {
-      color: white;
-      margin-right: 1em;
-      text-decoration: none;
-    }
+header button:hover{
+  border-radius: 0;
+  border: none;
+  color: white;
+  background-color: rgba(0,0,0,0);
+  border-bottom: 2px solid white
+}
 
-    nav a:hover {
-      text-decoration: underline;
-    }
+nav {
+  background-color: #333;
+  padding: 1em;
+}
 
-    main {
-      padding: 2em;
-    }
-    
-    footer {
-      background-color: #f1f1f1;
-      text-align: center;
-      padding: 1em;
-      position: fixed;
-      bottom: 0;
-      width: 100%;
-    }
+nav a {
+  color: white;
+  margin-right: 1em;
+  text-decoration: none;
+}
 
- /* Header container */
+nav a:hover {
+  text-decoration: underline;
+}
+
+main {
+  padding: 2em;
+}
+
+footer {
+  background-color: #f1f1f1;
+  text-align: center;
+  padding: 1em;
+  position: fixed;
+  bottom: 0;
+  width: 100%;
+}
+
+/* Header container */
 .site-header {
-    width: 100%;
-    background: #2d2d2d;
-    padding: 10px 20px;        /* Reduced padding so it fits */
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-sizing: border-box;   /* Prevents overflow */
-    color: white;
+  width: 100%;
+  background: #2d2d2d;
+  padding: 10px 20px; /* Reduced padding so it fits */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-sizing: border-box; /* Prevents overflow */
+  color: white;
 }
 
 /* Left navigation (Home, Quest Board, etc.) */
 .left-nav a {
-    margin-right: 20px;
-    color: white;
-    text-decoration: none;
-    font-size: 1.1rem;
+  margin-right: 20px;
+  color: white;
+  text-decoration: none;
+  font-size: 1.1rem;
 }
 
 .left-nav a:hover {
-    text-decoration: underline;
+  text-decoration: underline;
 }
 
 /* Right navigation */
 .right-nav {
-    display: flex;
-    gap: 12px;                /* Slightly smaller spacing */
+  display: flex;
+  gap: 12px; /* Slightly smaller spacing */
 }
 
 /* Buttons */
 .btn {
-    padding: 6px 14px;        /* Smaller button padding */
-    background: #4a6cf7;
-    color: white;
-    border-radius: 6px;
-    text-decoration: none;
-    font-size: 0.9rem;
-    transition: 0.2s;
-    white-space: nowrap;      /* Prevent wrapping */
+  padding: 6px 14px; /* Smaller button padding */
+  background: #4a6cf7;
+  color: white;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  transition: 0.2s;
+  white-space: nowrap; /* Prevent wrapping */
 }
 
 .btn:hover {
-    background: #3b5bdb;
+  background: #3b5bdb;
 }
 
 .small-btn {
-    font-size: 0.9rem;
+  font-size: 0.9rem;
 }
