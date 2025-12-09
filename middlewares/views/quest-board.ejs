@@ -33,10 +33,10 @@
               <div class="d-flex justify-content-between align-items-center">
                 <small class="text-muted">#<%= quest.username %></small>
                 <div>
-                  <button class="btn btn-sm btn-success accept-btn me-1">
+                  <button class="btn btn-sm btn-success accept-btn me-1" onclick="acceptQuest('<%= quest._id %>')">
                     <i class="fa-solid fa-check"></i> ACCEPT
                   </button>
-                  <button class="btn btn-sm btn-outline-danger delete-btn">
+                  <button class="btn btn-sm btn-outline-danger delete-btn" onclick="rejectQuest('<%= quest._id %>')">
                     <i class="fa-regular fa-trash-can"></i>
                   </button>
                 </div>
@@ -50,7 +50,7 @@
     <%- include('partials/footer') %>
   </body>
   <script>
-    const ws = new WebSocket(`ws://${window.location.host}/quest-board`);
+    const ws = new WebSocket(`ws://${window.location.host}/ws/chat`);
 
     ws.addEventListener("open", () => {
       console.log("WebSocket connection opened");
@@ -64,9 +64,16 @@
       console.log(event.data);
     });
 
-    function sendMessage() {
+    function acceptQuest(questID) {
       console.log("Sending message");
-      ws.send("Hello World");
+      ws.send("ACCEPT---" + questID);
+      window.location.reload();
+    }
+
+    function rejectQuest(questID) {
+      console.log("Sending message");
+      ws.send("REJECT---" + questID);
+      window.location.reload();
     }
   </script>
 </html>

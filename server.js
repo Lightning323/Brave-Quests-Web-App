@@ -5,6 +5,7 @@ const bcrypt = require("bcrypt");
 const path = require("path");
 const fs = require("fs");
 const dotenv = require("dotenv");
+const { WebSocketServer } = require("ws");
 
 // Load environment variables from .env file
 dotenv.config();
@@ -19,13 +20,15 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.json());
 
 // Sessions (only once!)
+const sessionParser = session({
+  secret: process.env.SESSION_SECRET,
+  resave: false,
+  saveUninitialized: false,
+  cookie: { maxAge: 1000 * 60 * 60 }, // 1 hour
+});
+
 app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    cookie: { maxAge: 1000 * 60 * 60 }, // 1 hour
-  })
+  sessionParser
 );
 
 // Routes
@@ -95,55 +98,29 @@ app.use((err, req, res, next) => {
 const port = process.env.PORT || 3000;
 const server = app.listen(port, () => console.log(`Server running http://localhost:${port}`));
 
-
-const { WebSocketServer } = require("ws");
-
-
-const wssChat = new WebSocketServer({ noServer: true });
-wssChat.on("connection", (ws) => {
-  ws.send("CHAT---Connected to chat WS!");
-
-  ws.on("message", (message) => {
-    console.log("CHAT---Received message:", message);
+//WEBSOCKETS ---------------------------------------
+function bindWSS(server, path, wss, sessionParser) {
+  server.on("upgrade", (request, socket, head) => {
+    if (request.url === path) {
+      // Parse session first
+      sessionParser(request, {}, () => {
+        wss.handleUpgrade(request, socket, head, (ws) => {
+          wss.emit("connection", ws, request); // now request.session is available
+        });
+      });
+    } else {
+      socket.destroy();
+    }
   });
-
-  ws.on("close", () => {
-    console.log("CHAT---WebSocket connection closed");
-  });
-});
-
-const wssNotify = new WebSocketServer({ noServer: true });
-wssNotify.on("connection", (ws) => {
-  ws.send("NOTIFICATION---Connected to notifications WS!");
-
-  ws.on("message", (message) => {
-    console.log("NOTIFICATION---Received message:", message);
-  });
-
-  ws.on("close", () => {
-    console.log("NOTIFICATION---WebSocket connection closed");
-  });
-});
-
-// Upgrade requests for websockets
-server.on("upgrade", (request, socket, head) => {
-  const { url } = request;
-  if (url === "/ws/chat") {
-    wssChat.handleUpgrade(request, socket, head, (ws) => {
-      wssChat.emit("connection", ws, request);
-    });
-  } else if (url === "/ws/notifications") {
-    wssNotify.handleUpgrade(request, socket, head, (ws) => {
-      wssNotify.emit("connection", ws, request);
-    });
-  } else {
-    socket.destroy();
-  }
-});
+}
 
 
-async function start() {
+bindWSS(server, questBoard.wssQuestsAddress, questBoard.wssQuests, sessionParser);
+//----------------------------------------------------
+
+// Connect the database
+async function connectDB() {
   await database.connect();
 }
 
-start();
+connectDB();
