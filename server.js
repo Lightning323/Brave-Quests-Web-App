@@ -5,7 +5,7 @@ const bcrypt = require("bcrypt");
 const path = require("path");
 const fs = require("fs");
 const dotenv = require("dotenv");
- 
+
 // Load environment variables from .env file
 dotenv.config();
 
@@ -74,6 +74,11 @@ app.post('/api/items', async (req, res) => {
     });
   }
 });
+
+
+
+
+
 //-------------------------------------
 // Error endpoints (MUST BE LAST)
 app.use((req, res) => {
@@ -88,9 +93,57 @@ app.use((err, req, res, next) => {
 //-------------------------------------
 // Start server and database connection
 const port = process.env.PORT || 3000;
+const server = app.listen(port, () => console.log(`Server running http://localhost:${port}`));
+
+
+const { WebSocketServer } = require("ws");
+
+
+const wssChat = new WebSocketServer({ noServer: true });
+wssChat.on("connection", (ws) => {
+  ws.send("CHAT---Connected to chat WS!");
+
+  ws.on("message", (message) => {
+    console.log("CHAT---Received message:", message);
+  });
+
+  ws.on("close", () => {
+    console.log("CHAT---WebSocket connection closed");
+  });
+});
+
+const wssNotify = new WebSocketServer({ noServer: true });
+wssNotify.on("connection", (ws) => {
+  ws.send("NOTIFICATION---Connected to notifications WS!");
+
+  ws.on("message", (message) => {
+    console.log("NOTIFICATION---Received message:", message);
+  });
+
+  ws.on("close", () => {
+    console.log("NOTIFICATION---WebSocket connection closed");
+  });
+});
+
+// Upgrade requests for websockets
+server.on("upgrade", (request, socket, head) => {
+  const { url } = request;
+  if (url === "/ws/chat") {
+    wssChat.handleUpgrade(request, socket, head, (ws) => {
+      wssChat.emit("connection", ws, request);
+    });
+  } else if (url === "/ws/notifications") {
+    wssNotify.handleUpgrade(request, socket, head, (ws) => {
+      wssNotify.emit("connection", ws, request);
+    });
+  } else {
+    socket.destroy();
+  }
+});
+
+
 async function start() {
   await database.connect();
-  app.listen(port, () => console.log(`Server running http://localhost:${port}`));
 }
 
 start();

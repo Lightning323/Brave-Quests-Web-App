@@ -3,6 +3,9 @@ const router = express.Router();
 const routeUtils = require('./routeUtils');
 const database = require("../database");
 const questUtils = require("./questUtils");
+const {WebSocketServer} = require("ws");
+
+
 
 router.get('/chat', async (req, res) => {
   var acceptedQuests = await questUtils.getAcceptedQuests(req.session.user);

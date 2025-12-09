@@ -16,8 +16,30 @@
       <p>You are NOT logged in. 👀</p>
       <% } %>
       <p>Help friends and gain points to upgrade your character!!!!</p>
+      <div id="messages"></div>
+      <button id="sendButton" onclick="sendMessage()">Send</button>
     </main>
 
     <%- include('partials/footer') %>
   </body>
+  <script>
+    const ws = new WebSocket(`ws://${window.location.host}/ws/chat`);
+
+    ws.addEventListener("open", () => {
+      console.log("WebSocket connection opened");
+    });
+
+    ws.addEventListener("close", () => {
+      console.log("WebSocket connection closed");
+    });
+
+    ws.addEventListener("message", (event) => {
+      console.log(event.data);
+    });
+
+    function sendMessage() {
+      console.log("Sending message");
+      ws.send("Hello World");
+    }
+  </script>
 </html>
