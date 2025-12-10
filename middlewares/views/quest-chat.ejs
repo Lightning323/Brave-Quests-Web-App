@@ -4,7 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title><%= title %></title>
-    <link rel="icon" href="../public/images/Knight_thumbnail01.png" type="image/png">
+    <link
+      rel="icon"
+      href="../public/images/Knight_thumbnail01.png"
+      type="image/png"
+    />
     <%- include('partials/head-tags') %>
     <link rel="stylesheet" href="/chat.css" />
     <script src="/color.js"></script>
@@ -201,7 +205,8 @@
       }
 
       // --- Quest selected ---
-      titleEl.textContent = quest.title;
+      titleEl.textContent =
+        quest.title + (quest.completed == true ? " (resolved)" : "");
       descriptionEl.textContent = quest.description;
       applyTheme(quest.color);
 
@@ -212,12 +217,10 @@
 
       // Show resolve/delete button
       resolveButtonEl.style.display = "inline";
-      resolveButtonEl.textContent = quest.completed
-        ? "Delete Quest"
-        : "Resolve Quest";
-
-      // Enable controls again
-      setFormDisabled(false);
+      resolveButtonEl.textContent =
+        quest.completed == true ? "Delete Quest" : "Resolve Quest";
+      console.log("quest.completed:", quest.completed);
+      setFormDisabled(quest.completed == true);
     }
 
     function loadMessages(list) {

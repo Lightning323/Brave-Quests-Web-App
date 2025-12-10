@@ -22,7 +22,7 @@ class ChatModule {
       if (this.grabAcceptedQuests) {
         acceptedQuests = await questUtils.getAcceptedQuests(req.session.user, false);
       } else {
-        acceptedQuests = await questUtils.getMyQuests(req.session.user, false);
+        acceptedQuests = await questUtils.getMyQuests(req.session.user, true);
       }
 
       this.startingQuest = null;
@@ -103,7 +103,12 @@ class ChatModule {
               type: "QUEST_RESOLVED",
               questDbId: data.questDbId
             }));
-            await questUtils.deleteQuest(data.questDbId);
+
+            //Delete the quest if the user is the creator
+            var quest = await questUtils.getQuest(data.questDbId);
+            if (quest !== null && quest.username == session.user) {
+               await questUtils.deleteQuest(data.questDbId);
+            }
           }
 
           else if (data.action === "SELECT_QUEST") {
