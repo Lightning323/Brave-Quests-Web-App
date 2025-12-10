@@ -47,26 +47,23 @@ function updateSession(req, account) {
 
 async function saveCharacterToDB(username, character) {
     try {
-        const result = await database.accountsCollection.updateOne(
+        return await database.accountsCollection.updateOne(
             { username }, // filter by username
             { $set: { character: character } } // replace character
         );
-        return true;
     } catch (err) {
         console.error("ERROR saving character:", err);
-        return false;
+        return 0;
     }
 }
 
 async function setCharacter(username, gender, charClass, armor, weapon) {
     try {
         var newCharacter = character_json(gender, charClass, armor, weapon);
-        // console.log("Replacing character: ", newCharacter);
         const result = await saveCharacterToDB(username, newCharacter);
 
         if (result.modifiedCount === 1) {
             console.log(`Character replaced for user ${username}`);
-            // session.character = newCharacter;
             return newCharacter;
         } else {
             console.log(`No character updated for user ${username}`);
