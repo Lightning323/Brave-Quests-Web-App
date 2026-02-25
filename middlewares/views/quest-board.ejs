@@ -31,7 +31,7 @@
     <%- include('partials/footer') %>
   </body>
   <script>
-    const ws = new WebSocket(`ws://${window.location.host}/ws/quest-board`);
+    const ws = new WebSocket(`${location.origin.replace(/^http/, "ws")}/ws/quest-board`);
 
     function requestBoardUpdate() {
       ws.send(JSON.stringify({ action: "GET_QUESTS" }));

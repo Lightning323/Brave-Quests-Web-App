@@ -69,6 +69,9 @@ app.post('/api/items', async (req, res) => {
 
 //-------------------------------------
 // Start server
+if(process.env.APP_VERSION){
+  console.log("App version: "+process.env.APP_VERSION);
+}
 const port = process.env.PORT || 3000;
 const server = app.listen(port, () => console.log(`Server running http://localhost:${port}`));
 

@@ -4,14 +4,15 @@ const dotenv = require("dotenv");
 // Load environment variables from .env file
 dotenv.config();
  
-const userName = process.env.MONGODB_USERNAME;
-const password = process.env.MONGODB_PASSWORD;
+if(!process.env.MONGODB_URI) {
+  throw new Error("Missing MONGODB_URI environment variable");
+}
+ 
+const db_uri = process.env.MONGODB_URI;
 
-
-const uri = `mongodb+srv://${userName}:${password}@questdatabase.pqhnow6.mongodb.net/?appName=QuestDatabase`;
  
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
-const client = new MongoClient(uri, {
+const client = new MongoClient(db_uri, {
   serverApi: {
     version: ServerApiVersion.v1,
     strict: true,
@@ -21,7 +22,7 @@ const client = new MongoClient(uri, {
  
 async function connect() {
   try {
-    console.log("CONNECTING...");
+    console.log("CONNECTING to MongoDB...");
     await client.connect();
     console.log("CONNECTED to MongoDB yay!");
   } catch (err) {
