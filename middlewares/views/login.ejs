@@ -4,7 +4,11 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Login</title>
-    <link rel="icon" href="../public/images/Knight_thumbnail01.png" type="image/png">
+    <link
+      rel="icon"
+      href="../public/images/Knight_thumbnail01.png"
+      type="image/png"
+    />
     <%- include('partials/head-tags') %>
   </head>
   <body>
@@ -72,14 +76,12 @@
           const messageEl = document.getElementById("message");
 
           try {
-            const response = await fetch("http://localhost:3000/login", {
+            const response = await fetch(window.location.hostname + "/login", {
               method: "POST",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify({ username, password }),
             });
-
             const data = await response.json();
-
             if (response.ok) {
               messageEl.textContent = data.message;
               messageEl.className = "message success";
