@@ -2,7 +2,6 @@
 
 ![GitHub repo size](https://img.shields.io/github/repo-size/Lightning323/Brave-Quests-Web-App)
 ![GitHub issues](https://img.shields.io/github/issues/Lightning323/Brave-Quests-Web-App)
-![GitHub stars](https://img.shields.io/github/stars/Lightning323/Brave-Quests-Web-App?style=social)
 ![License](https://img.shields.io/github/license/Lightning323/Brave-Quests-Web-App)
 
 Welcome to **Brave Quests**, the ultimate quest board where users connect, collaborate, and conquer challenges together! This web app lets you create, follow, and complete quests while earning points for your heroic deeds.  
@@ -23,18 +22,16 @@ Welcome to **Brave Quests**, the ultimate quest board where users connect, colla
 - **Gamification:** Earn points for helping others—be the hero of the community!  
 - **Follow Quests:** Keep an eye on quests that interest you.  
 
-
-
----
-
-## Tech Used
-
-- **Frontend:** EJS  
-- **Backend:** Node.js & Express  
-- **Database:** MongoDB  
-- **Authentication:** bcrypt  
-
 ---
 
 ## How to Run Locally
 `npm run start`
+
+---
+## Other information
+
+The site was developed using node.js, with a MongoDB Database:
+- **Frontend:** EJS  
+- **Backend:** Node.js & Express  
+- **Database:** MongoDB  
+- **Authentication:** bcrypt  
